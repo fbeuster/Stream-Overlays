@@ -27,6 +27,7 @@ export default class Server {
       console.log('Listening for requests...');
 
       Promise.resolve(this.twitch.authorize())
+        .then(() => this.twitch.deleteAllEventSubSubscriptions())
         .then(() => console.log('Done for now.'));
     });
   }
