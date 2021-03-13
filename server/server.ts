@@ -28,6 +28,7 @@ export default class Server {
 
       Promise.resolve(this.twitch.authorize())
         .then(() => this.twitch.deleteAllEventSubSubscriptions())
+        .then(() => this.twitch.getUserByUsername(process.env.TWITCH_USERNAME ?? ''))
         .then(() => console.log('Done for now.'));
     });
   }

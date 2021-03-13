@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import { AuthorizationData } from '../interfaces/authorizationData';
 import { EventSubSubscription } from '../interfaces/eventSubSubscription';
+import { User } from '../interfaces/user';
 
 export class Twitch {
   private HELIX_API = 'https://api.twitch.tv/helix';
@@ -9,6 +10,7 @@ export class Twitch {
   private authorizationData: AuthorizationData;
   private clientId: string;
   private clientSecret: string;
+  private user: User;
 
   constructor(clientId: string, clientSecret: string) {
     this.clientId = clientId;
@@ -21,6 +23,20 @@ export class Twitch {
       scope: [],
       token_type: ''
     };
+
+    this.user = {
+      id: '',
+      login: '',
+      display_name: '',
+      type: '',
+      broadcaster_type: '',
+      description: '',
+      profile_image_url: '',
+      offline_image_url: '',
+      view_count: 0,
+      email: '',
+      created_at: ''
+    }
   }
 
   authorize() {
@@ -104,6 +120,38 @@ export class Twitch {
         .then(res => {
           console.log('Deleted');
           resolve('');
+        })
+        .catch(error => {
+          console.error(error);
+          reject('');
+        });
+    });
+  }
+
+  getUserByUsername(username: string) {
+    return new Promise((resolve, reject) => {
+      console.log('Get user ' + username + '...');
+
+      var url = this.HELIX_API + '/users?login=' + username;
+
+      axios
+        .get<{
+          data: User[]
+        }>(url, {
+          headers: {
+            'Client-ID': this.clientId,
+            'Authorization': 'Bearer ' + this.authorizationData.access_token
+          }
+        })
+        .then(res => {
+          if (res.data.data.length !== 1) {
+            console.log('User ' + username + ' not found.');
+            reject('');
+
+          } else {
+            this.user = res.data.data[0];
+            resolve('');
+          }
         })
         .catch(error => {
           console.error(error);
