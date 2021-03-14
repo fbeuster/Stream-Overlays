@@ -1,4 +1,5 @@
 import axios from 'axios';
+import randomstring from 'randomstring';
 
 import { AuthorizationData } from '../interfaces/authorizationData';
 import { EventSubSubscription } from '../interfaces/eventSubSubscription';
@@ -6,15 +7,20 @@ import { User } from '../interfaces/user';
 
 export class Twitch {
   private HELIX_API = 'https://api.twitch.tv/helix';
+  private EVENT_SUB_API = this.HELIX_API + '/eventsub/subscriptions';
 
   private authorizationData: AuthorizationData;
+  private callbackUri: string;
   private clientId: string;
   private clientSecret: string;
   private user: User;
+  private webhookSecret: string;
 
-  constructor(clientId: string, clientSecret: string) {
+  constructor(clientId: string, clientSecret: string, callbackUri: string) {
+    this.callbackUri = callbackUri;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
+    this.webhookSecret = randomstring.generate(32);
 
     this.authorizationData = {
       access_token: '',
@@ -58,6 +64,48 @@ export class Twitch {
         })
         .catch(error => {
           console.error(error);
+          reject('');
+        });
+    });
+  }
+
+  createEventSubSubscriptionFollow() {
+    return new Promise((resolve, reject) => {
+      console.log('Create EventSub Subscription...')
+
+      var url = this.EVENT_SUB_API;
+      var data = {
+        'type': 'channel.follow',
+        'version': '1',
+        'condition' : {
+          'broadcaster_user_id': this.user.id
+        },
+        'transport' : {
+          'method' : 'webhook',
+          'callback': this.callbackUri + '/notification',
+          'secret' : this.webhookSecret
+        }
+      }
+      var config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Client-ID': this.clientId,
+          'Authorization': 'Bearer ' + this.authorizationData.access_token
+        }
+      }
+
+      axios
+        .post<{
+          data: EventSubSubscription[],
+          total: number,
+          limit: number
+         }>(url, data, config)
+        .then(res => {
+          console.log('Listening for followers...');
+          resolve('');
+        })
+        .catch(error => {
+          console.log(error);
           reject('');
         });
     });
@@ -108,7 +156,7 @@ export class Twitch {
     return new Promise((resolve, reject) => {
       console.log('Deleting subscription ' + id + '...');
 
-      var url = this.HELIX_API + '/eventsub/subscriptions?id=' + id;
+      var url = this.EVENT_SUB_API + '?id=' +id;
 
       axios
         .delete<any>(url, {

@@ -17,7 +17,8 @@ export default class Server {
     this.app = express();
     this.twitch = new Twitch(
       process.env.TWITCH_CLIENT_ID ?? '',
-      process.env.TWITCH_CLIENT_SECRET ?? '');
+      process.env.TWITCH_CLIENT_SECRET ?? '',
+      process.env.NGROK_URI ?? '');
   }
 
   public listen(port: any): void {
@@ -29,6 +30,7 @@ export default class Server {
       Promise.resolve(this.twitch.authorize())
         .then(() => this.twitch.deleteAllEventSubSubscriptions())
         .then(() => this.twitch.getUserByUsername(process.env.TWITCH_USERNAME ?? ''))
+        .then(() => this.twitch.createEventSubSubscriptionFollow())
         .then(() => console.log('Done for now.'));
     });
   }
