@@ -87,11 +87,7 @@ export class Twitch {
         }
       }
       var config = {
-        headers: {
-          'Content-Type': 'application/json',
-          'Client-ID': this.clientId,
-          'Authorization': 'Bearer ' + this.authorizationData.access_token
-        }
+        headers: this.createRequestHeader()
       }
 
       axios
@@ -111,6 +107,14 @@ export class Twitch {
     });
   }
 
+  createRequestHeader() {
+    return {
+      'Content-Type': 'application/json',
+      'Client-ID': this.clientId,
+      'Authorization': 'Bearer ' + this.authorizationData.access_token
+    };
+  }
+
   deleteAllEventSubSubscriptions() {
     return new Promise((resolve, reject) => {
       console.log('Getting subscriptions...');
@@ -124,10 +128,7 @@ export class Twitch {
           limit: number,
           pagination: any
         }>(url, {
-          headers: {
-            'Client-ID': this.clientId,
-            'Authorization': 'Bearer ' + this.authorizationData.access_token
-          }
+          headers: this.createRequestHeader()
         })
         .then(res => {
           if (res.data.total == 0) {
@@ -160,10 +161,7 @@ export class Twitch {
 
       axios
         .delete<any>(url, {
-          headers: {
-            'Client-ID': this.clientId,
-            'Authorization': 'Bearer ' + this.authorizationData.access_token
-          }
+          headers: this.createRequestHeader()
         })
         .then(res => {
           console.log('Deleted');
@@ -186,10 +184,7 @@ export class Twitch {
         .get<{
           data: User[]
         }>(url, {
-          headers: {
-            'Client-ID': this.clientId,
-            'Authorization': 'Bearer ' + this.authorizationData.access_token
-          }
+          headers: this.createRequestHeader()
         })
         .then(res => {
           if (res.data.data.length !== 1) {
