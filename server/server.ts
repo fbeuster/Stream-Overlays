@@ -14,15 +14,21 @@ export default class Server {
 
     this.port = '';
 
-    this.app = express();
     this.twitch = new Twitch(
       process.env.TWITCH_CLIENT_ID ?? '',
       process.env.TWITCH_CLIENT_SECRET ?? '',
       process.env.NGROK_URI ?? '');
+
+    this.app = express();
+    this.app.use(express.static(process.cwd() + '/../client/dist/client/'));
   }
 
   public listen(port: any): void {
     this.port = port;
+
+    this.app.get('/', (req,res) => {
+      res.sendFile(process.cwd() + '/../client/dist/client/index.html');
+    });
 
     this.app.listen(port, async() => {
       Promise.resolve(this.twitch.authorize())
