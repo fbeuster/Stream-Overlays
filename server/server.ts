@@ -25,16 +25,16 @@ export default class Server {
     this.port = port;
 
     this.app.listen(port, async() => {
-      console.log('Listening for requests...');
-
       Promise.resolve(this.twitch.authorize())
         .then(() => this.twitch.deleteAllEventSubSubscriptions())
         .then(() => this.twitch.getUserByUsername(process.env.TWITCH_USERNAME ?? ''))
         .then(() => this.twitch.createEventSubSubscriptionFollow())
         .then(() => console.log('Done for now.'));
+
+      console.log('Listening for requests...');
     });
   }
 }
 
 const server = new Server();
-server.listen(3080);
+server.listen(process.env.SERVER_PORT ?? 3080);

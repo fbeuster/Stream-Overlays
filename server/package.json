@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start_server": "tsc && node build/server.js"
+    "build_server" : "tsc",
+    "run_server": "node build/server.js"
   },
   "dependencies": {
     "@types/express": "^4.17.11",
