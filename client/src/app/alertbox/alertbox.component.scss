@@ -1,0 +1,29 @@
+$cold_black: #191f1f;
+$cold_white: #f3f9f9;
+$green: #0ea86c;
+
+.alert_box {
+  background: rgba($cold_black, 0.75);
+  border-left: 0.125em solid $green;
+  color: $cold_white;
+  font-size: 64px;
+  font-family: Arial, sans-serif;
+  margin: 64px;
+  padding: 64px;
+  text-shadow: 0.0625em 0.0625em 0.125em $cold_black;
+
+  &.from_right {
+    margin-right: 0;
+  }
+
+  .alert_content {
+    display: grid;
+    grid-template-rows: 1.2em auto;
+    max-height: 824px;
+    overflow: hidden;
+
+    .user {
+      color: $green;
+    }
+  }
+}

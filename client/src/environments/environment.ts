@@ -4,7 +4,13 @@
 
 export const environment = {
   production: false,
-  serverEventUri: '//localhost:3081/events'
+  serverEventUri: '//localhost:3081/events',
+  times: {
+    alerts: {
+      cooldown: 1000,
+      display: 5000
+    }
+  }
 };
 
 /*

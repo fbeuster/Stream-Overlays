@@ -1,3 +1,16 @@
-h1 {
-  margin: 1em 0.5em;
+$cold_black: #191f1f;
+$cold_white: #f3f9f9;
+$green: #0ea86c;
+
+.grid {
+  display: grid;
+  grid-template-rows: 100%;
+  grid-template-columns: 100%;
+  height: 100%;
+  overflow: hidden;
+  width: 100%;
+
+  div {
+    align-self: end;
+  }
 }
