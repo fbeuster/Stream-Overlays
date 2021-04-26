@@ -1,12 +1,14 @@
 import axios from 'axios';
 import express from 'express';
 import dotenv from 'dotenv';
+import EventEmitter from 'events';
 
 import { Twitch } from './services/twitch';
 
 export default class Server {
   private app: express.Application;
   private port: string;
+  private stream: EventEmitter;
   private twitch: Twitch;
 
   constructor() {
@@ -21,13 +23,29 @@ export default class Server {
 
     this.app = express();
     this.app.use(express.static(process.cwd() + '/../client/dist/client/'));
+
+    this.stream = new EventEmitter();
   }
 
   public listen(port: any): void {
     this.port = port;
 
-    this.app.get('/', (req,res) => {
-      res.sendFile(process.cwd() + '/../client/dist/client/index.html');
+    this.app.get('/events', (req, res) => {
+      console.log('Client has connected');
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive'
+      });
+
+      this.stream.on('push', (event, data) => {
+        res.write('event: ' + String(event) + '\n' + 'data: ' + JSON.stringify(data) + '\n\n')
+      });
+
+    });
+
+    this.app.get('/*', (req,res) => {
+      res.sendFile('index.html', { root: process.cwd() + '/../client/dist/client'});
     });
 
     this.app.listen(port, async() => {
@@ -38,6 +56,13 @@ export default class Server {
         .then(() => console.log('Done for now.'));
 
       console.log('Listening for requests...');
+
+      setInterval(() => {
+        this.stream.emit('push', 'message', {
+          name: Math.floor(Date.now() / 1000),
+          type: 'follow'
+        });
+      }, 10000);
     });
   }
 }
