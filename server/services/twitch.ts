@@ -1,4 +1,5 @@
 import axios from 'axios';
+import crypto from 'crypto';
 import randomstring from 'randomstring';
 
 import { AuthorizationData } from '../interfaces/authorizationData';
@@ -201,5 +202,14 @@ export class Twitch {
           reject('');
         });
     });
+  }
+
+  verifySignature(
+    messageSignature: string, messageID: string,
+    messageTimestamp: string, body: string): boolean {
+    let message = messageID + messageTimestamp + body;
+    let signature = crypto.createHmac('sha256', this.webhookSecret).update(message);
+    let expectedSignatureHeader = 'sha256=' + signature.digest('hex');
+    return expectedSignatureHeader === messageSignature
   }
 }

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import bodyParser from 'body-parser';
 import express from 'express';
 import dotenv from 'dotenv';
 import EventEmitter from 'events';
@@ -23,6 +24,11 @@ export default class Server {
 
     this.app = express();
     this.app.use(express.static(process.cwd() + '/../client/dist/client/'));
+    this.app.use(bodyParser.json({
+      verify: (req, res, buf) => {
+          req.rawBody = buf;
+      }
+    }));
 
     this.stream = new EventEmitter();
   }
@@ -44,6 +50,27 @@ export default class Server {
 
     });
 
+    this.app.post('/notification', (req, res) => {
+      if (!this.twitch.verifySignature(
+            req.header('Twitch-Eventsub-Message-Signature') ?? '',
+            req.header('Twitch-Eventsub-Message-Id') ?? '',
+            req.header('Twitch-Eventsub-Message-Timestamp') ?? '',
+            req.rawBody)) {
+        res.status(403).send('Forbidden');
+
+      } else {
+        if (req.header('Twitch-Eventsub-Message-Type') === 'webhook_callback_verification') {
+          res.send(req.body.challenge);
+        } else {
+          this.stream.emit('push', 'message', {
+            name: req.body.event.user_name,
+            type: 'follow'
+          });
+          res.send('Ok')
+        }
+      }
+    });
+
     this.app.get('/*', (req,res) => {
       res.sendFile('index.html', { root: process.cwd() + '/../client/dist/client'});
     });
@@ -56,13 +83,6 @@ export default class Server {
         .then(() => console.log('Done for now.'));
 
       console.log('Listening for requests...');
-
-      setInterval(() => {
-        this.stream.emit('push', 'message', {
-          name: Math.floor(Date.now() / 1000),
-          type: 'follow'
-        });
-      }, 10000);
     });
   }
 }
