@@ -4,10 +4,12 @@ import express from 'express';
 import dotenv from 'dotenv';
 import EventEmitter from 'events';
 
+import { Debug } from './services/debug';
 import { Twitch } from './services/twitch';
 
 export default class Server {
   private app: express.Application;
+  private debug: Debug;
   private port: string;
   private stream: EventEmitter;
   private twitch: Twitch;
@@ -16,6 +18,8 @@ export default class Server {
     dotenv.config();
 
     this.port = '';
+
+    this.debug = new Debug();
 
     this.twitch = new Twitch(
       process.env.TWITCH_CLIENT_ID ?? '',
@@ -35,6 +39,13 @@ export default class Server {
 
   public listen(port: any): void {
     this.port = port;
+
+    this.app.get('/commands', (req, res) => {
+      if (req.query.debug && typeof req.query.debug == 'string') {
+        this.debug.sendDebugAlert(req.query.debug, this.stream);
+      }
+      res.send('Ok')
+    });
 
     this.app.get('/events', (req, res) => {
       console.log('Client has connected');
