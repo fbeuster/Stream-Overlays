@@ -38,19 +38,30 @@ export class OverlayComponent implements OnInit {
 
       setTimeout(() => {
         let data = JSON.parse(event.data);
+        console.log(data);
         this.alertbox = data;
         this.visible = true;
 
-        let audio = new Audio();
-        audio.src = '../assets/sfx/shipBell.mp3';
-        audio.load();
-        audio.play();
+        this.playAlertSound();
 
         setTimeout(() => {
           this.visible = false;
         }, environment.times.alerts.display);
       }, environment.times.alerts.cooldown);
     });
+  }
+
+  playAlertSound(): void {
+      let audio = new Audio();
+
+      if (this.alertbox.type === 'follow') {
+        audio.src = '../assets/sfx/shipBell.mp3';
+      } else {
+        audio.src = '../assets/sfx/battleCrowd.mp3';
+      }
+
+      audio.load();
+      audio.play();
   }
 
 }

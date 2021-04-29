@@ -73,10 +73,19 @@ export default class Server {
         if (req.header('Twitch-Eventsub-Message-Type') === 'webhook_callback_verification') {
           res.send(req.body.challenge);
         } else {
-          this.stream.emit('push', 'message', {
-            name: req.body.event.user_name,
-            type: 'follow'
-          });
+          if (req.body.subscription.type === 'channel.follow') {
+            this.stream.emit('push', 'message', {
+              name: req.body.event.user_name,
+              viewers: 0,
+              type: 'follow'
+            });
+          } else {
+            this.stream.emit('push', 'message', {
+              name: req.body.event.from_broadcaster_user_name,
+              viewers: req.body.event.viewers,
+              type: 'raid'
+            });
+          }
           res.send('Ok')
         }
       }
@@ -91,6 +100,7 @@ export default class Server {
         .then(() => this.twitch.deleteAllEventSubSubscriptions())
         .then(() => this.twitch.getUserByUsername(process.env.TWITCH_USERNAME ?? ''))
         .then(() => this.twitch.createEventSubSubscriptionFollow())
+        .then(() => this.twitch.createEventSubSubscriptionRaid())
         .then(() => console.log('Done for now.'));
 
       console.log('Listening for requests...');
