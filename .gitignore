@@ -106,3 +106,4 @@ dist
 # Workspace files
 *.sublime-project
 *.sublime-workspace
+commands.json

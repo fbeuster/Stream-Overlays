@@ -12,7 +12,11 @@
     "events": "^3.3.0",
     "express": "^4.17.1",
     "randomstring": "^1.1.5",
+    "tmi.js": "^1.8.3",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.3"
+  },
+  "devDependencies": {
+    "@types/tmi.js": "^1.7.1"
   }
 }

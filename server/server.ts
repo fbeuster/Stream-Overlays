@@ -4,8 +4,11 @@ import express from 'express';
 import dotenv from 'dotenv';
 import EventEmitter from 'events';
 
+import { User } from './interfaces/user';
+
 import { Debug } from './services/debug';
 import { Twitch } from './services/twitch';
+import { TwitchChatbot } from './services/twitchChabot';
 
 export default class Server {
   private app: express.Application;
@@ -13,6 +16,7 @@ export default class Server {
   private port: string;
   private stream: EventEmitter;
   private twitch: Twitch;
+  private chatbot: TwitchChatbot;
 
   constructor() {
     dotenv.config();
@@ -35,6 +39,12 @@ export default class Server {
     }));
 
     this.stream = new EventEmitter();
+
+    this.chatbot = new TwitchChatbot(
+                        process.env.TWITCH_CHATBOT_LOGIN ?? '',
+                        process.env.TWITCH_CHATBOT_OAUTH ?? '',
+                        process.env.TWITCH_USERNAME ?? '',
+                        this.twitch);
   }
 
   public listen(port: any): void {
@@ -99,6 +109,7 @@ export default class Server {
       Promise.resolve(this.twitch.authorize())
         .then(() => this.twitch.deleteAllEventSubSubscriptions())
         .then(() => this.twitch.getUserByUsername(process.env.TWITCH_USERNAME ?? ''))
+        .then((user: User) => this.twitch.setUser(user))
         .then(() => this.twitch.createEventSubSubscriptionFollow())
         .then(() => this.twitch.createEventSubSubscriptionRaid())
         .then(() => console.log('Done for now.'));

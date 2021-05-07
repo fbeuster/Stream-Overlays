@@ -4,6 +4,7 @@ import randomstring from 'randomstring';
 
 import { AuthorizationData } from '../interfaces/authorizationData';
 import { EventSubSubscription } from '../interfaces/eventSubSubscription';
+import { Stream } from '../interfaces/stream';
 import { User } from '../interfaces/user';
 
 export class Twitch {
@@ -213,7 +214,35 @@ export class Twitch {
     });
   }
 
-  getUserByUsername(username: string) {
+  getStreamByUsername(username: string): Promise<Stream> {
+    return new Promise((resolve, reject) => {
+      console.log('Get user ' + username + '...');
+
+      var url = this.HELIX_API + '/streams?user_login=' + username;
+
+      axios
+        .get<{
+          data: Stream[]
+        }>(url, {
+          headers: this.createRequestHeader()
+        })
+        .then(res => {
+          if (res.data.data.length === 0) {
+            console.log('No streams found for ' + username + '.');
+            reject(null);
+
+          } else {
+            resolve(res.data.data[0]);
+          }
+        })
+        .catch(error => {
+          console.error(error);
+          reject(null);
+        });
+    });
+  }
+
+  getUserByUsername(username: string): Promise<User> {
     return new Promise((resolve, reject) => {
       console.log('Get user ' + username + '...');
 
@@ -228,18 +257,25 @@ export class Twitch {
         .then(res => {
           if (res.data.data.length !== 1) {
             console.log('User ' + username + ' not found.');
-            reject('');
+            reject(null);
 
           } else {
-            this.user = res.data.data[0];
-            resolve('');
+            resolve(res.data.data[0]);
           }
         })
         .catch(error => {
           console.error(error);
-          reject('');
+          reject(null);
         });
     });
+  }
+
+  getUser(): User {
+    return this.user;
+  }
+
+  setUser(user: User) {
+    this.user = user;
   }
 
   verifySignature(
