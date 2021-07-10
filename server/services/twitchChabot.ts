@@ -41,14 +41,6 @@ export class TwitchChatbot {
     return count === 1 ? word : word + 's';
   }
 
-  handleDanceParty() {
-    if (commands.dances && commands.dances.length > 0) {
-      var dance = Math.floor(Math.random() * commands.dances.length);
-      var danceparty = (commands.dances[dance] + " ").repeat(5);
-      this.client.say(this.target_channel, danceparty);
-    }
-  }
-
   handleShoutOut(tags: tmi.ChatUserstate, username: string) {
     if (!this.isRequirementMet(tags, ['broadcaster', 'mod', 'subscriber'])) {
       return;
@@ -77,6 +69,22 @@ export class TwitchChatbot {
       if (text_command.command === message) {
         if (this.isRequirementMet(tags, text_command.roles)) {
           this.client.say(this.target_channel, text_command.text);
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  handleRandomTextCommands(tags: tmi.ChatUserstate, message: string): boolean {
+    for (var i = 0; i < commands.random_text_commands.length; i++) {
+      var text_command = commands.random_text_commands[i];
+      if (text_command.command === message) {
+        if (this.isRequirementMet(tags, text_command.roles)) {
+          var j = Math.floor(Math.random() * text_command.texts.length);
+          var message = text_command.texts[j] + ' ';
+          this.client.say(this.target_channel, message.repeat(text_command.repeat));
           return true;
         }
       }
@@ -135,17 +143,16 @@ export class TwitchChatbot {
       return;
     }
 
+    if (this.handleRandomTextCommands(tags, message)) {
+      return;
+    }
+
     if (this.handleTextCommands(tags, message)) {
       return;
     }
 
     if (message === '!uptime') {
       this.handleUptime();
-      return;
-    }
-
-    if (message === '!danceparty') {
-      this.handleDanceParty();
       return;
     }
 
