@@ -82,4 +82,4 @@ The server has two commands, ```build_server``` and ```run_server```, which are 
 ...\server> npm run build_server
 ```
 
-After the server has started, you can find the overlays under ```http://localhost:3081/overlay``` and the dashboard under ```http://localhost:3081/dashboard```.
+After the server has started, you can find the overlays under ```http://localhost:your_app_port/overlay``` and the dashboard under ```http://localhost:your_app_port/dashboard```.

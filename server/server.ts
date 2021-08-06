@@ -4,9 +4,11 @@ import express from 'express';
 import dotenv from 'dotenv';
 import EventEmitter from 'events';
 
+import { LightCommand } from './interfaces/lightCommand';
 import { User } from './interfaces/user';
 
 import { Debug } from './services/debug';
+import { Light } from './services/light';
 import { Twitch } from './services/twitch';
 import { TwitchChatbot } from './services/twitchChabot';
 
@@ -17,6 +19,7 @@ export default class Server {
   private stream: EventEmitter;
   private twitch: Twitch;
   private chatbot: TwitchChatbot;
+  private light: Light;
 
   constructor() {
     dotenv.config();
@@ -45,6 +48,8 @@ export default class Server {
                         process.env.TWITCH_CHATBOT_OAUTH ?? '',
                         process.env.TWITCH_USERNAME ?? '',
                         this.twitch);
+
+    this.light = new Light();
   }
 
   public listen(port: any): void {
@@ -84,12 +89,22 @@ export default class Server {
           res.send(req.body.challenge);
         } else {
           if (req.body.subscription.type === 'channel.follow') {
+            this.light.addLightCommand({
+              name: 'brightnessFlash',
+              value: 3,
+              reset: true
+            });
             this.stream.emit('push', 'message', {
               name: req.body.event.user_name,
               viewers: 0,
               type: 'follow'
             });
           } else {
+            this.light.addLightCommand({
+              name: 'redAlert',
+              value: 5,
+              reset: true
+            });
             this.stream.emit('push', 'message', {
               name: req.body.event.from_broadcaster_user_name,
               viewers: req.body.event.viewers,
