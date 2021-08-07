@@ -81,7 +81,12 @@ export default class Server {
       this.stream.on('push', (event, data) => {
         res.write('event: ' + String(event) + '\n' + 'data: ' + JSON.stringify(data) + '\n\n')
       });
+    });
 
+    this.app.put('/light', (req,res) => {
+      let command: LightCommand = req.body;
+      this.light.addLightCommand(command);
+      res.send('Ok');
     });
 
     this.app.post('/notification', (req, res) => {
