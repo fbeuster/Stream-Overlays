@@ -56,6 +56,10 @@ export class OverlayComponent implements OnInit {
 
       if (this.alertbox.type === 'follow') {
         audio.src = '../assets/sfx/shipBell.mp3';
+      } else if (this.alertbox.type === 'sub') {
+        audio.src = '../assets/sfx/drums.mp3';
+      } else if (this.alertbox.type === 'subGift') {
+        audio.src = '../assets/sfx/drums.mp3';
       } else {
         audio.src = '../assets/sfx/battleCrowd.mp3';
       }

@@ -31,7 +31,8 @@ export default class Server {
     this.twitch = new Twitch(
       process.env.TWITCH_CLIENT_ID ?? '',
       process.env.TWITCH_CLIENT_SECRET ?? '',
-      process.env.NGROK_URI ?? '');
+      process.env.NGROK_URI ?? '',
+      process.env.AUTHORIZE_CALLBACK_URI ?? '');
 
     this.app = express();
     this.app.use(express.static(process.cwd() + '/../client/dist/client/'));
@@ -54,6 +55,13 @@ export default class Server {
 
   public listen(port: any): void {
     this.port = port;
+
+    this.app.get('/authorize', (req,res) => {
+      Promise.resolve(this.twitch.authorizeUser(req.query.code, req.query.scope))
+        .then(() => this.twitch.createEventSubSubscriptionSubscribe())
+        .then(() => console.log('Done for now.'));
+      res.send('Ok')
+    });
 
     this.app.get('/commands', (req, res) => {
       if (req.query.debug && typeof req.query.debug == 'string') {
@@ -97,9 +105,11 @@ export default class Server {
             this.stream.emit('push', 'message', {
               name: req.body.event.user_name,
               viewers: 0,
+              value2: 0,
               type: 'follow'
             });
-          } else {
+
+          } else if (req.body.subscription.type === 'channel.raid') {
             this.light.addLightCommand({
               name: 'redAlert',
               value: 5,
@@ -108,8 +118,53 @@ export default class Server {
             this.stream.emit('push', 'message', {
               name: req.body.event.from_broadcaster_user_name,
               viewers: req.body.event.viewers,
+              value2: 0,
               type: 'raid'
             });
+
+          } else if (req.body.subscription.type === 'channel.subscribe') {
+            console.log(req.body);
+            if (req.body.event.is_gift === false) {
+              let tier: string = req.body.event.tier;
+
+              if (tier === '3000') {
+                tier = '3';
+              } else if (tier === '2000') {
+                tier = '2';
+              } else {
+                tier = '1';
+              }
+
+
+              this.stream.emit('push', 'message', {
+                name: req.body.event.user_name,
+                viewers: tier,
+                value2: 0,
+                type: 'sub'
+              });
+            }
+
+          } else if (req.body.subscription.type === 'channel.subscription.gift') {
+            console.log(req.body);
+            let name: string = req.body.event.is_anonymous === false ? req.body.event.from_broadcaster_user_name : 'Anonymous';
+            let tier: string = req.body.event.tier;
+
+            if (tier === '3000') {
+              tier = '3';
+            } else if (tier === '2000') {
+              tier = '2';
+            } else {
+              tier = '1';
+            }
+
+
+            this.stream.emit('push', 'message', {
+              name: req.body.event.user_name,
+              viewers: tier,
+              value2: req.body.event.total,
+              type: 'subGift'
+            });
+          } else {
           }
           res.send('Ok')
         }

@@ -12,19 +12,30 @@ export class Twitch {
   private EVENT_SUB_API = this.HELIX_API + '/eventsub/subscriptions';
 
   private authorizationData: AuthorizationData;
+  private authorizationDataUser: AuthorizationData;
+  private authorizeCallbackUri: string;
   private callbackUri: string;
   private clientId: string;
   private clientSecret: string;
   private user: User;
   private webhookSecret: string;
 
-  constructor(clientId: string, clientSecret: string, callbackUri: string) {
+  constructor(clientId: string, clientSecret: string, callbackUri: string, authorizeCallbackUri: string) {
+    this.authorizeCallbackUri = authorizeCallbackUri;
     this.callbackUri = callbackUri;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.webhookSecret = randomstring.generate(32);
 
     this.authorizationData = {
+      access_token: '',
+      refresh_token: '',
+      expires_in: 0,
+      scope: [],
+      token_type: ''
+    };
+
+    this.authorizationDataUser = {
       access_token: '',
       refresh_token: '',
       expires_in: 0,
@@ -49,7 +60,7 @@ export class Twitch {
 
   authorize() {
     return new Promise((resolve, reject) => {
-      console.log('Authorize Twitch...');
+      console.log('Authorize app at Twitch...');
 
       var url = 'https://id.twitch.tv/oauth2/token' +
         '?client_id=' + this.clientId +
@@ -62,6 +73,33 @@ export class Twitch {
           this.authorizationData.access_token = res.data.access_token;
           this.authorizationData.expires_in = res.data.expires_in;
           this.authorizationData.token_type = res.data.token_type;
+          resolve('');
+        })
+        .catch(error => {
+          console.error(error);
+          reject('');
+        });
+    });
+  }
+
+  authorizeUser(code: any, scope: any) {
+    return new Promise((resolve, reject) => {
+      console.log('Authorize user at Twitch...');
+
+      var url = 'https://id.twitch.tv/oauth2/token' +
+        '?client_id=' + this.clientId +
+        '&client_secret=' + this.clientSecret +
+        '&code=' + code +
+        '&grant_type=authorization_code' +
+        '&scope=' + scope +
+        '&redirect_uri=' + this.authorizeCallbackUri;
+
+      axios
+        .post<AuthorizationData>(url)
+        .then(res => {
+          this.authorizationDataUser.access_token = res.data.access_token;
+          this.authorizationDataUser.expires_in = res.data.expires_in;
+          this.authorizationDataUser.token_type = res.data.token_type;
           resolve('');
         })
         .catch(error => {
@@ -138,6 +176,82 @@ export class Twitch {
          }>(url, data, config)
         .then(res => {
           console.log('Listening for raids...');
+          resolve('');
+        })
+        .catch(error => {
+          console.log(error);
+          reject('');
+        });
+    });
+  }
+
+  createEventSubSubscriptionSubscribe() {
+    return new Promise((resolve, reject) => {
+      console.log('Create EventSub subscription for subscriptions...')
+
+      var url = this.EVENT_SUB_API;
+      var data = {
+        'type': 'channel.subscribe',
+        'version': '1',
+        'condition' : {
+          'broadcaster_user_id': this.user.id
+        },
+        'transport' : {
+          'method' : 'webhook',
+          'callback': this.callbackUri + '/notification',
+          'secret' : this.webhookSecret
+        }
+      }
+      var config = {
+        headers: this.createRequestHeader()
+      }
+
+      axios
+        .post<{
+          data: EventSubSubscription[],
+          total: number,
+          limit: number
+         }>(url, data, config)
+        .then(res => {
+          console.log('Listening for subscriptions...');
+          resolve('');
+        })
+        .catch(error => {
+          console.log(error);
+          reject('');
+        });
+    });
+  }
+
+  createEventSubSubscriptionSubscriptionGift() {
+    return new Promise((resolve, reject) => {
+      console.log('Create EventSub subscription for gifted subscriptions...')
+
+      var url = this.EVENT_SUB_API;
+      var data = {
+        'type': 'channel.subscription.gift',
+        'version': '1',
+        'condition' : {
+          'broadcaster_user_id': this.user.id
+        },
+        'transport' : {
+          'method' : 'webhook',
+          'callback': this.callbackUri + '/notification',
+          'secret' : this.webhookSecret
+        }
+      }
+      var config = {
+        headers: this.createRequestHeader()
+      }
+
+      axios
+        .post<{
+          data: EventSubSubscription[],
+          total: number,
+          limit: number
+         }>(url, data, config)
+        .then(res => {
+          console.log('Listening for subscriptions...');
           resolve('');
         })
         .catch(error => {

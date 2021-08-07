@@ -23,6 +23,14 @@ export class AlertboxComponent implements OnInit {
       return 'Just raided your channel with ' + this.alertbox.viewers + ' viewer' + (this.alertbox.viewers == 1 ? '' : 's') + '.';
     }
 
+    if (this.alertbox.type === 'sub') {
+      return 'Just subscribed with a Tier ' + this.alertbox.viewers + ' subscription.';
+    }
+
+    if (this.alertbox.type === 'subGift') {
+      return 'Just gifted ' + this.alertbox.value2 + ' Tier ' + this.alertbox.viewers + ' subscription' + (this.alertbox.value2 == 1 ? '' : 's') + '.';
+    }
+
     return '';
   }
 
