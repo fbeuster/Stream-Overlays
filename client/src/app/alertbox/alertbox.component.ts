@@ -15,6 +15,10 @@ export class AlertboxComponent implements OnInit {
   }
 
   getSubtitle(): string {
+    if (this.alertbox.type === 'cheer') {
+      return 'Just dropped ' + this.alertbox.viewers + ' bits on the table!';
+    }
+
     if (this.alertbox.type === 'follow') {
       return 'Just followed your channel.';
     }

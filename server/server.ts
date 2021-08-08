@@ -59,6 +59,7 @@ export default class Server {
     this.app.get('/authorize', (req,res) => {
       Promise.resolve(this.twitch.authorizeUser(req.query.code, req.query.scope))
         .then(() => this.twitch.createEventSubSubscriptionSubscribe())
+        .then(() => this.twitch.createEventSubSubscriptionCheer())
         .then(() => console.log('Done for now.'));
       res.send('Ok')
     });
@@ -101,7 +102,17 @@ export default class Server {
         if (req.header('Twitch-Eventsub-Message-Type') === 'webhook_callback_verification') {
           res.send(req.body.challenge);
         } else {
-          if (req.body.subscription.type === 'channel.follow') {
+          if (req.body.subscription.type === 'channel.cheer') {
+            let name: string = req.body.event.is_anonymus === false ? 'Anonymous' : req.body.event.user_name;
+
+            this.stream.emit('push', 'message', {
+              name: name,
+              viewers: req.body.event.bits,
+              value2: 0,
+              type: 'cheer'
+            });
+
+          } else if (req.body.subscription.type === 'channel.follow') {
             this.light.addLightCommand({
               name: 'brightnessFlash',
               value: 3,
@@ -128,7 +139,6 @@ export default class Server {
             });
 
           } else if (req.body.subscription.type === 'channel.subscribe') {
-            console.log(req.body);
             if (req.body.event.is_gift === false) {
               let tier: string = req.body.event.tier;
 
@@ -147,10 +157,11 @@ export default class Server {
                 value2: 0,
                 type: 'sub'
               });
+
+              this.chatbot.say(`Hey ${req.body.event.user_name}, thanks a lot for subscribing! <3`);
             }
 
           } else if (req.body.subscription.type === 'channel.subscription.gift') {
-            console.log(req.body);
             let name: string = req.body.event.is_anonymous === false ? req.body.event.from_broadcaster_user_name : 'Anonymous';
             let tier: string = req.body.event.tier;
 
@@ -169,6 +180,8 @@ export default class Server {
               value2: req.body.event.total,
               type: 'subGift'
             });
+
+            this.chatbot.say(`Hey ${name}, thank you sou much for gifting ${req.body.event.total} to the community! <3`);
           } else {
           }
           res.send('Ok')

@@ -164,4 +164,8 @@ export class TwitchChatbot {
       return;
     }
   }
+
+  public say(text: string) {
+    this.client.say(this.target_channel, text);
+  }
 }

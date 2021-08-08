@@ -109,6 +109,44 @@ export class Twitch {
     });
   }
 
+  createEventSubSubscriptionCheer() {
+    return new Promise((resolve, reject) => {
+      console.log('Create EventSub subscription for cheers...')
+
+      var url = this.EVENT_SUB_API;
+      var data = {
+        'type': 'channel.cheer',
+        'version': '1',
+        'condition' : {
+          'broadcaster_user_id': this.user.id
+        },
+        'transport' : {
+          'method' : 'webhook',
+          'callback': this.callbackUri + '/notification',
+          'secret' : this.webhookSecret
+        }
+      }
+      var config = {
+        headers: this.createRequestHeader()
+      }
+
+      axios
+        .post<{
+          data: EventSubSubscription[],
+          total: number,
+          limit: number
+         }>(url, data, config)
+        .then(res => {
+          console.log('Listening for cheers...');
+          resolve('');
+        })
+        .catch(error => {
+          console.log(error);
+          reject('');
+        });
+    });
+  }
+
   createEventSubSubscriptionFollow() {
     return new Promise((resolve, reject) => {
       console.log('Create EventSub subscription for followers...')

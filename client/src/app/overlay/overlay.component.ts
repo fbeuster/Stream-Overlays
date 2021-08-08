@@ -54,7 +54,9 @@ export class OverlayComponent implements OnInit {
   playAlertSound(): void {
       let audio = new Audio();
 
-      if (this.alertbox.type === 'follow') {
+      if (this.alertbox.type === 'cheer') {
+        audio.src = '../assets/sfx/coins.mp3';
+      } else if (this.alertbox.type === 'follow') {
         audio.src = '../assets/sfx/shipBell.mp3';
       } else if (this.alertbox.type === 'sub') {
         audio.src = '../assets/sfx/drums.mp3';

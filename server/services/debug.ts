@@ -52,5 +52,13 @@ export class Debug {
         type: 'subGift'
       });
     }
+    if (type === 'cheer') {
+      stream.emit('push', 'message', {
+        name: 'Black Widow',
+        viewers: 1000,
+        value2: 0,
+        type: 'cheer'
+      });
+    }
   }
 }
