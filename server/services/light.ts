@@ -122,7 +122,7 @@ export class Light {
     this.executeNextCommand();
   }
 
-  private brightnessFlash(flashes: number) {
+  public brightnessFlash(flashes: number) {
     const state = this.lightManager.getState();
     this.light_ips.forEach(ip => {
       state[ip].brightness = 100;
@@ -191,7 +191,14 @@ export class Light {
     }
   }
 
-  private redAlert(seconds: number)
+  private hexToRgb(hex: string) {
+    var r = parseInt(hex.substr(1,2), 16);
+    var g = parseInt(hex.substr(3,2), 16);
+    var b = parseInt(hex.substr(5,2), 16);
+    return [ r, g, b ];
+  }
+
+  public redAlert(seconds: number)
   {
     this.redAlertStep(seconds * 4 + 1);
   }
@@ -220,5 +227,48 @@ export class Light {
       this.lightManager.reset();
       this.working = false;
     }, 250);
+  }
+
+  private rgbToHsv(r: number, g: number, b: number): number[] {
+    r /= 255, g /= 255, b /= 255;
+
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var s, v = max;
+    let h: number = 0;
+
+    var d = max - min;
+    s = max == 0 ? 0 : d / max;
+
+    if (max == min) {
+      h = 0; // achromatic
+    } else {
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+
+      h = h / 6;
+    }
+
+    return [ h * 360, s * 100, v * 100 ];
+  }
+
+  public setColor(color: string, seconds: number) {
+    var rgb = this.hexToRgb(color);
+    var hsv = this.rgbToHsv(rgb[0], rgb[1], rgb[2]);
+
+    const state = this.lightManager.getState();
+    this.light_ips.forEach(ip => {
+      state[ip].hue = hsv[0];
+      state[ip].saturation = hsv[1];
+      state[ip].brightness = hsv[2];
+    });
+
+    this.lightManager.setState(state);
+
+    setTimeout(() => {
+      this.lightManager.reset();
+    }, seconds * 1000);
   }
 }
