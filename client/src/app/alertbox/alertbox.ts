@@ -1,6 +1,8 @@
 export interface Alertbox {
   name: string,
-  viewers: number,
-  value2: number,
+  viewers?: number,
+  tier?: number,
+  bits?: number,
+  gifted?: number,
   type: string;
 }

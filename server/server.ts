@@ -107,8 +107,7 @@ export default class Server {
 
             this.stream.emit('push', 'message', {
               name: name,
-              viewers: req.body.event.bits,
-              value2: 0,
+              bits: req.body.event.bits,
               type: 'cheer'
             });
 
@@ -120,8 +119,6 @@ export default class Server {
             });
             this.stream.emit('push', 'message', {
               name: req.body.event.user_name,
-              viewers: 0,
-              value2: 0,
               type: 'follow'
             });
 
@@ -134,7 +131,6 @@ export default class Server {
             this.stream.emit('push', 'message', {
               name: req.body.event.from_broadcaster_user_name,
               viewers: req.body.event.viewers,
-              value2: 0,
               type: 'raid'
             });
 
@@ -153,8 +149,7 @@ export default class Server {
 
               this.stream.emit('push', 'message', {
                 name: req.body.event.user_name,
-                viewers: tier,
-                value2: 0,
+                tier: tier,
                 type: 'sub'
               });
 
@@ -176,8 +171,8 @@ export default class Server {
 
             this.stream.emit('push', 'message', {
               name: req.body.event.user_name,
-              viewers: tier,
-              value2: req.body.event.total,
+              tier: tier,
+              gifted: req.body.event.total,
               type: 'subGift'
             });
 

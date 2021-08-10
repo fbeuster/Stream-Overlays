@@ -22,7 +22,8 @@ $green: #0ea86c;
     max-height: 824px;
     overflow: hidden;
 
-    .user {
+    .user,
+    ::ng-deep .highlight {
       color: $green;
     }
   }

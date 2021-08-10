@@ -1,3 +1,4 @@
+import { formatNumber } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { Alertbox } from './alertbox';
 
@@ -16,7 +17,7 @@ export class AlertboxComponent implements OnInit {
 
   getSubtitle(): string {
     if (this.alertbox.type === 'cheer') {
-      return 'Just dropped ' + this.alertbox.viewers + ' bits on the table!';
+      return 'Just dropped <span class="highlight">' + formatNumber(this.alertbox.bits, 'en_us') + '</span> bits on the table!';
     }
 
     if (this.alertbox.type === 'follow') {
@@ -24,15 +25,15 @@ export class AlertboxComponent implements OnInit {
     }
 
     if (this.alertbox.type === 'raid') {
-      return 'Just raided your channel with ' + this.alertbox.viewers + ' viewer' + (this.alertbox.viewers == 1 ? '' : 's') + '.';
+      return 'Just raided your channel with <span class="highlight">' + formatNumber(this.alertbox.viewers, 'en_us') + '</span> viewer' + (this.alertbox.viewers == 1 ? '' : 's') + '.';
     }
 
     if (this.alertbox.type === 'sub') {
-      return 'Just subscribed with a Tier ' + this.alertbox.viewers + ' subscription.';
+      return 'Just subscribed with a Tier ' + this.alertbox.tier + ' subscription.';
     }
 
     if (this.alertbox.type === 'subGift') {
-      return 'Just gifted ' + this.alertbox.value2 + ' Tier ' + this.alertbox.viewers + ' subscription' + (this.alertbox.value2 == 1 ? '' : 's') + '.';
+      return 'Just gifted <span class="highlight">' + formatNumber(this.alertbox.gifted, 'en_us') + '</span> Tier ' + this.alertbox.tier + ' subscription' + (this.alertbox.gifted == 1 ? '' : 's') + '.';
     }
 
     return '';
