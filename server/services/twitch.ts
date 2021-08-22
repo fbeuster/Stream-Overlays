@@ -185,6 +185,44 @@ export class Twitch {
     });
   }
 
+  createEventSubSubscriptionPointsRedemption() {
+    return new Promise((resolve, reject) => {
+      console.log('Create EventSub subscription for channel point redemptions...')
+
+      var url = this.EVENT_SUB_API;
+      var data = {
+        'type': 'channel.channel_points_custom_reward_redemption.add',
+        'version': '1',
+        'condition' : {
+          'broadcaster_user_id': this.user.id
+        },
+        'transport' : {
+          'method' : 'webhook',
+          'callback': this.callbackUri + '/notification',
+          'secret' : this.webhookSecret
+        }
+      }
+      var config = {
+        headers: this.createRequestHeader()
+      }
+
+      axios
+        .post<{
+          data: EventSubSubscription[],
+          total: number,
+          limit: number
+         }>(url, data, config)
+        .then(res => {
+          console.log('Listening for channel point redemptions...');
+          resolve('');
+        })
+        .catch(error => {
+          console.log(error);
+          reject('');
+        });
+    });
+  }
+
   createEventSubSubscriptionRaid() {
     return new Promise((resolve, reject) => {
       console.log('Create EventSub subscription for raids...')

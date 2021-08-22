@@ -60,6 +60,7 @@ export default class Server {
       Promise.resolve(this.twitch.authorizeUser(req.query.code, req.query.scope))
         .then(() => this.twitch.createEventSubSubscriptionSubscribe())
         .then(() => this.twitch.createEventSubSubscriptionCheer())
+        .then(() => this.twitch.createEventSubSubscriptionPointsRedemption())
         .then(() => console.log('Done for now.'));
       res.send('Ok')
     });
@@ -121,6 +122,13 @@ export default class Server {
               name: req.body.event.user_name,
               type: 'follow'
             });
+
+          } else if (req.body.subscription.type === 'channel.channel_points_custom_reward_redemption.add') {
+            if (req.body.event.reward.cost === 128) {
+              let chars = '0123456789abcdef';
+              let color = '#' + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16);
+              this.light.setColor(color, 5);
+            }
 
           } else if (req.body.subscription.type === 'channel.raid') {
             this.light.addLightCommand({
