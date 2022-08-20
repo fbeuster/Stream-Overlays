@@ -147,7 +147,7 @@ export class Light {
     }, 250);
   }
 
-  private executeNextCommand() {
+  private executeNextCommand(delayed = false) {
     if (this.lightCommands.length == 0) {
         return;
     }
@@ -158,6 +158,22 @@ export class Light {
       }, 250);
 
       return;
+    }
+
+    if (!delayed
+        && this.lightCommands.length > 0
+        && this.lightCommands[0] !== null
+        && this.lightCommands[0] !== undefined) {
+
+      if (this.lightCommands[0].delay !== undefined
+        && this.lightCommands[0].delay > 0) {
+
+        setTimeout(() => {
+          this.executeNextCommand(true);
+        }, this.lightCommands[0].delay * 1000);
+
+        return;
+      }
     }
 
     let command = this.lightCommands.shift();
@@ -181,6 +197,14 @@ export class Light {
 
     } else if (command.name === 'brightnessFlash') {
       this.brightnessFlash(command.value);
+
+    } else if (command.name === 'color') {
+      if (command.color !== undefined) {
+        this.setColor(command.color, command.value, command.reset);
+      }
+
+    } else if (command.name === 'flashbang') {
+      this.setColor('#ffffff', command.value, command.reset);
 
     } else if (command.name === 'reset') {
       this.reset();
@@ -254,7 +278,7 @@ export class Light {
     return [ h * 360, s * 100, v * 100 ];
   }
 
-  public setColor(color: string, seconds: number) {
+  public setColor(color: string, seconds: number, reset: boolean) {
     var rgb = this.hexToRgb(color);
     var hsv = this.rgbToHsv(rgb[0], rgb[1], rgb[2]);
 
@@ -268,7 +292,10 @@ export class Light {
     this.lightManager.setState(state);
 
     setTimeout(() => {
-      this.lightManager.reset();
+      this.working = false;
+      if (reset) {
+        this.lightManager.reset();
+      }
     }, seconds * 1000);
   }
 }
