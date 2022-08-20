@@ -107,3 +107,4 @@ dist
 *.sublime-project
 *.sublime-workspace
 commands.json
+events.json

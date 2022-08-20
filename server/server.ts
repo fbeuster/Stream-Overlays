@@ -4,9 +4,13 @@ import express from 'express';
 import dotenv from 'dotenv';
 import EventEmitter from 'events';
 
+import events from './events.json';
+
+import { Events } from './interfaces/events';
 import { LightCommand } from './interfaces/lightCommand';
 import { User } from './interfaces/user';
 
+import { Action } from './services/action';
 import { Debug } from './services/debug';
 import { Light } from './services/light';
 import { Twitch } from './services/twitch';
@@ -20,11 +24,15 @@ export default class Server {
   private twitch: Twitch;
   private chatbot: TwitchChatbot;
   private light: Light;
+  private action: Action;
+  private events: Events;
 
   constructor() {
     dotenv.config();
 
     this.port = '';
+
+    this.light = new Light();
 
     this.debug = new Debug();
 
@@ -50,7 +58,8 @@ export default class Server {
                         process.env.TWITCH_USERNAME ?? '',
                         this.twitch);
 
-    this.light = new Light();
+    this.events = events;
+    this.action = new Action(this.events, this.stream, this.light, this.chatbot);
   }
 
   public listen(port: any): void {
@@ -59,6 +68,7 @@ export default class Server {
     this.app.get('/authorize', (req,res) => {
       Promise.resolve(this.twitch.authorizeUser(req.query.code, req.query.scope))
         .then(() => this.twitch.createEventSubSubscriptionSubscribe())
+        .then(() => this.twitch.createEventSubSubscriptionSubscriptionGift())
         .then(() => this.twitch.createEventSubSubscriptionCheer())
         .then(() => this.twitch.createEventSubSubscriptionPointsRedemption())
         .then(() => console.log('Done for now.'));
@@ -68,7 +78,10 @@ export default class Server {
     this.app.get('/commands', (req, res) => {
       if (req.query.debug && typeof req.query.debug == 'string') {
         this.debug.sendDebugAlert(req.query.debug, this.stream);
+
+        this.action.resolveDebug(req.query.debug, {});
       }
+
       res.send('Ok')
     });
 
@@ -102,70 +115,43 @@ export default class Server {
       } else {
         if (req.header('Twitch-Eventsub-Message-Type') === 'webhook_callback_verification') {
           res.send(req.body.challenge);
+
         } else {
-          if (req.body.subscription.type === 'channel.cheer') {
-            let name: string = req.body.event.is_anonymus === false ? 'Anonymous' : req.body.event.user_name;
+          this.action.resolveTwitch(req.body.subscription.type, req.body.event);
 
-            this.stream.emit('push', 'message', {
-              name: name,
-              bits: req.body.event.bits,
-              type: 'cheer'
-            });
+          // if (req.body.subscription.type === 'channel.channel_points_custom_reward_redemption.add') {
+          //   if (req.body.event.reward.cost === 128) {
+          //     let chars = '0123456789abcdef';
+          //     let color = '#' + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16);
+          //     this.light.setColor(color, 5);
+          //   }
 
-          } else if (req.body.subscription.type === 'channel.follow') {
-            this.light.addLightCommand({
-              name: 'brightnessFlash',
-              value: 3,
-              reset: true
-            });
-            this.stream.emit('push', 'message', {
-              name: req.body.event.user_name,
-              type: 'follow'
-            });
+          // } else
+          // if (req.body.subscription.type === 'channel.subscribe') {
+          //   if (req.body.event.is_gift === false) {
+          //     let tier: string = req.body.event.tier;
 
-          } else if (req.body.subscription.type === 'channel.channel_points_custom_reward_redemption.add') {
-            if (req.body.event.reward.cost === 128) {
-              let chars = '0123456789abcdef';
-              let color = '#' + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16) + chars.charAt(Math.random() * 16);
-              this.light.setColor(color, 5);
-            }
-
-          } else if (req.body.subscription.type === 'channel.raid') {
-            this.light.addLightCommand({
-              name: 'redAlert',
-              value: 5,
-              reset: true
-            });
-            this.stream.emit('push', 'message', {
-              name: req.body.event.from_broadcaster_user_name,
-              viewers: req.body.event.viewers,
-              type: 'raid'
-            });
-
-          } else if (req.body.subscription.type === 'channel.subscribe') {
-            if (req.body.event.is_gift === false) {
-              let tier: string = req.body.event.tier;
-
-              if (tier === '3000') {
-                tier = '3';
-              } else if (tier === '2000') {
-                tier = '2';
-              } else {
-                tier = '1';
-              }
+          //     if (tier === '3000') {
+          //       tier = '3';
+          //     } else if (tier === '2000') {
+          //       tier = '2';
+          //     } else {
+          //       tier = '1';
+          //     }
 
 
-              this.stream.emit('push', 'message', {
-                name: req.body.event.user_name,
-                tier: tier,
-                type: 'sub'
-              });
+          //     this.stream.emit('push', 'message', {
+          //       name: req.body.event.user_name,
+          //       tier: tier,
+          //       type: 'sub'
+          //     });
 
-              this.chatbot.say(`Hey ${req.body.event.user_name}, thanks a lot for subscribing! <3`);
-            }
+          //     this.chatbot.say(`Hey ${req.body.event.user_name}, thanks a lot for subscribing! <3`);
+          //   }
 
-          } else if (req.body.subscription.type === 'channel.subscription.gift') {
-            let name: string = req.body.event.is_anonymous === false ? req.body.event.from_broadcaster_user_name : 'Anonymous';
+          // } else
+          if (req.body.subscription.type === 'channel.subscription.gift' ) {
+            let name: string = req.body.event.is_anonymous === false ? req.body.event.user_name : 'Anonymous';
             let tier: string = req.body.event.tier;
 
             if (tier === '3000') {
@@ -203,9 +189,22 @@ export default class Server {
         .then((user: User) => this.twitch.setUser(user))
         .then(() => this.twitch.createEventSubSubscriptionFollow())
         .then(() => this.twitch.createEventSubSubscriptionRaid())
-        .then(() => console.log('Done for now.'));
+        .then(() => console.log('Done for now.'))
+        .catch((error) => {
+          console.log(error);
+        });
 
       console.log('Listening for requests...');
+
+      // load list of emotes
+      //    - bttv channel, bttv global, twitch global
+      // store in hashmap { name -> id, ... }
+      //    - hardwire twitch prime
+      // upon message, check search words in hashmap
+      // send IDs to overlay
+      // overlay renders image
+
+      // followage
     });
   }
 }

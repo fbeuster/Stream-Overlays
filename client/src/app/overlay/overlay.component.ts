@@ -40,13 +40,20 @@ export class OverlayComponent implements OnInit {
         let data = JSON.parse(event.data);
         console.log(data);
         this.alertbox = data;
-        this.visible = true;
+
+        if (data.type !== 'explosion' &&
+            data.type !== 'raveparty') {
+          this.visible = true;
+        }
 
         this.playAlertSound();
 
-        setTimeout(() => {
-          this.visible = false;
-        }, environment.times.alerts.display);
+        if (data.type !== 'explosion' &&
+            data.type !== 'raveparty') {
+          setTimeout(() => {
+            this.visible = false;
+          }, environment.times.alerts.display);
+        }
       }, environment.times.alerts.cooldown);
     });
   }
@@ -54,16 +61,20 @@ export class OverlayComponent implements OnInit {
   playAlertSound(): void {
       let audio = new Audio();
 
-      if (this.alertbox.type === 'cheer') {
+      if (this.alertbox.type === 'channel.cheer') {
         audio.src = '../assets/sfx/coins.mp3';
-      } else if (this.alertbox.type === 'follow') {
+      } else if (this.alertbox.type === 'channel.follow') {
         audio.src = '../assets/sfx/shipBell.mp3';
-      } else if (this.alertbox.type === 'sub') {
+      } else if (this.alertbox.type === 'channel.subscribe') {
         audio.src = '../assets/sfx/drums.mp3';
       } else if (this.alertbox.type === 'subGift') {
         audio.src = '../assets/sfx/drums.mp3';
-      } else {
+      } else if (this.alertbox.type === 'channel.raid'){
         audio.src = '../assets/sfx/battleCrowd.mp3';
+      } else if (this.alertbox.type === 'explosion') {
+        audio.src = '../assets/sfx/explosion.wav';
+      } else if (this.alertbox.type === 'raveparty') {
+        audio.src = '../assets/sfx/rave.wav';
       }
 
       audio.load();

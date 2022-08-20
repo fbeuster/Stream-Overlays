@@ -16,19 +16,19 @@ export class AlertboxComponent implements OnInit {
   }
 
   getSubtitle(): string {
-    if (this.alertbox.type === 'cheer') {
+    if (this.alertbox.type === 'channel.cheer') {
       return 'Just dropped <span class="highlight">' + formatNumber(this.alertbox.bits, 'en_us') + '</span> bits on the table!';
     }
 
-    if (this.alertbox.type === 'follow') {
+    if (this.alertbox.type === 'channel.follow') {
       return 'Just followed your channel.';
     }
 
-    if (this.alertbox.type === 'raid') {
+    if (this.alertbox.type === 'channel.raid') {
       return 'Just raided your channel with <span class="highlight">' + formatNumber(this.alertbox.viewers, 'en_us') + '</span> viewer' + (this.alertbox.viewers == 1 ? '' : 's') + '.';
     }
 
-    if (this.alertbox.type === 'sub') {
+    if (this.alertbox.type === 'channel.subscribe') {
       return 'Just subscribed with a Tier ' + this.alertbox.tier + ' subscription.';
     }
 
