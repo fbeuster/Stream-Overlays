@@ -29,11 +29,33 @@ export class TwitchChatbot {
       channels: [target_channel]
     });
 
-    this.client.connect().catch(console.error);
+    this.client
+        .connect()
+        .then(() => this.scheduleRepeatedTextCommands())
+        .catch(console.error);
     this.client.on('message', this.onMessage);
 
     this.target_channel = target_channel;
     this.twitch = twitch;
+  }
+
+  scheduleRepeatedTextCommands() {
+    commands.repeated_text_commands.forEach((command) => {
+      let command_interval = command.interval * 1000;
+      let command_function = () => {
+        let j = Math.floor(Math.random() * command.texts.length);
+        this.client.say(this.target_channel, command.texts[j]);
+
+        setTimeout(function() {
+          command_function();
+        }, command_interval);
+      };
+
+      setTimeout(() => {
+        command_function();
+      }, command_interval);
+    });
+
   }
 
   formatPlural(word: string, count: number): string
