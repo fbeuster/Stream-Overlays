@@ -6,7 +6,7 @@ import { SseService } from './sse.service';
 @Injectable({
   providedIn: 'root'
 })
-export class OverlayService {
+export class ServerEventService {
   constructor(private _zone: NgZone, private _sseService: SseService) {}
 
   getServerSentEvent(url: string) {

@@ -164,10 +164,13 @@ export default class Server {
 
 
             this.stream.emit('push', 'message', {
-              name: req.body.event.user_name,
-              tier: tier,
-              gifted: req.body.event.total,
-              type: 'subGift'
+              eventType: 'alertbox',
+              eventData: {
+                name: req.body.event.user_name,
+                tier: tier,
+                gifted: req.body.event.total,
+                type: 'subGift'
+              }
             });
 
             this.chatbot.say(`Hey ${name}, thank you sou much for gifting ${req.body.event.total} to the community! <3`);

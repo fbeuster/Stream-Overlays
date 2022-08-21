@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 
 import { Alertbox } from './../alertbox/alertbox';
 import { environment } from './../../environments/environment';
-import { OverlayService } from './overlay.service';
+import { ServerEventService } from '../serverEvent/serverEvent.service';
 
 @Component({
   selector: 'overlay',
@@ -26,33 +26,34 @@ export class OverlayComponent implements OnInit {
   alertbox: Alertbox;
   visible = false;
 
-  constructor(private appService: OverlayService) {}
+  constructor(private serverEventService: ServerEventService) {}
 
   ngOnInit() {
     this.listen();
   }
 
   listen(): void {
-    this.appService.getServerSentEvent(environment.serverEventUri).subscribe(event => {
+    this.serverEventService.getServerSentEvent(environment.serverEventUri).subscribe(event => {
       this.visible = false;
 
       setTimeout(() => {
         let data = JSON.parse(event.data);
-        console.log(data);
-        this.alertbox = data;
+        if (data.eventType === 'alertbox') {
+          this.alertbox = data.eventData;
 
-        if (data.type !== 'explosion' &&
-            data.type !== 'raveparty') {
-          this.visible = true;
-        }
+          if (this.alertbox.type !== 'explosion' &&
+              this.alertbox.type !== 'raveparty') {
+            this.visible = true;
+          }
 
-        this.playAlertSound();
+          this.playAlertSound();
 
-        if (data.type !== 'explosion' &&
-            data.type !== 'raveparty') {
-          setTimeout(() => {
-            this.visible = false;
-          }, environment.times.alerts.display);
+          if (this.alertbox.type !== 'explosion' &&
+              this.alertbox.type !== 'raveparty') {
+            setTimeout(() => {
+              this.visible = false;
+            }, environment.times.alerts.display);
+          }
         }
       }, environment.times.alerts.cooldown);
     });

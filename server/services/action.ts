@@ -154,7 +154,9 @@ export class Action {
 
   private overlay(data: any) {
     console.log('Sending out for overlay...');
-    console.log(data);
-    this.stream.emit('push', 'message', data);
+    this.stream.emit('push', 'message', {
+      eventType: 'alertbox',
+      eventData: data
+    });
   }
 }
