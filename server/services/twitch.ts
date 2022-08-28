@@ -5,6 +5,7 @@ import randomstring from 'randomstring';
 import { AuthorizationData } from '../interfaces/authorizationData';
 import { EventSubSubscription } from '../interfaces/eventSubSubscription';
 import { Stream } from '../interfaces/stream';
+import { Subscriptions } from '../interfaces/subscriptions';
 import { User } from '../interfaces/user';
 
 export class Twitch {
@@ -345,6 +346,14 @@ export class Twitch {
     };
   }
 
+  createRequestHeaderAuthorized() {
+    return {
+      'Content-Type': 'application/json',
+      'Client-ID': this.clientId,
+      'Authorization': 'Bearer ' + this.authorizationDataUser.access_token
+    };
+  }
+
   deleteAllEventSubSubscriptions() {
     return new Promise((resolve, reject) => {
       console.log('Getting subscriptions...');
@@ -432,6 +441,25 @@ export class Twitch {
     });
   }
 
+  getSubscriptions(): Promise<Subscriptions> {
+    return new Promise((resolve, reject) => {
+      console.log('Get subscriptions for ' + this.user.id + '...');
+
+      var url = this.HELIX_API + '/subscriptions?broadcaster_id=' + this.user.id;
+
+      axios.get<Subscriptions>(url, {
+        headers: this.createRequestHeaderAuthorized()
+      })
+      .then(res => {
+        resolve(res.data);
+      })
+      .catch(error => {
+        console.error(error);
+        reject(null);
+      })
+    });
+  }
+
   getUserByUsername(username: string): Promise<User> {
     return new Promise((resolve, reject) => {
       console.log('Get user ' + username + '...');
@@ -462,6 +490,10 @@ export class Twitch {
 
   getUser(): User {
     return this.user;
+  }
+
+  isAuthorized(): boolean {
+    return this.authorizationDataUser.access_token !== '';
   }
 
   setUser(user: User) {

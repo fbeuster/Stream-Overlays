@@ -3,11 +3,13 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { OverlayComponent } from './overlay/overlay.component';
+import { SubCounterComponent } from './subCounter/subCounter.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: 'dashboard', component: DashboardComponent },
-  { path: 'overlay', component: OverlayComponent }
+  { path: 'overlay', component: OverlayComponent },
+  { path: 'subcounter', component: SubCounterComponent }
 ];
 
 @NgModule({

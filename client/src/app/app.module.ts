@@ -8,6 +8,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { OverlayComponent } from './overlay/overlay.component';
+import { SubCounterComponent } from './subCounter/subCounter.component';
 import { AlertboxComponent } from './alertbox/alertbox.component';
 
 @NgModule({
@@ -15,6 +16,7 @@ import { AlertboxComponent } from './alertbox/alertbox.component';
     AppComponent,
     DashboardComponent,
     OverlayComponent,
+    SubCounterComponent,
     AlertboxComponent
   ],
   imports: [

@@ -3,6 +3,7 @@ import EventEmitter from 'events';
 import { Events } from '../interfaces/events';
 
 import { Light } from '../services/light';
+import { Twitch } from '../services/twitch';
 import { TwitchChatbot } from '../services/twitchChabot';
 
 export class Action {
@@ -10,12 +11,14 @@ export class Action {
   private events: Events;
   private light: Light;
   private stream: EventEmitter;
+  private twitch: Twitch;
 
-  constructor(events: Events, stream: EventEmitter, light: Light, chatbot: TwitchChatbot) {
+  constructor(events: Events, stream: EventEmitter, light: Light, chatbot: TwitchChatbot, twitch: Twitch) {
     this.events = events;
     this.light = light;
     this.stream = stream;
     this.chatbot = chatbot;
+    this.twitch = twitch;
   }
 
   public resolveDebug(type: string, event: any) {
@@ -76,6 +79,14 @@ export class Action {
           }
         } else if (action.name == 'chatbot') {
           this.chatAction(type, event, action.data);
+        }
+
+        if (type === 'channel.subscribe' ||
+            type === 'channel.subscription.message') {
+          this.twitch.getSubscriptions()
+          .then((subscriptionData) => {
+            this.subcounter(subscriptionData);
+          });
         }
       });
     }
@@ -157,6 +168,14 @@ export class Action {
     this.stream.emit('push', 'message', {
       eventType: 'alertbox',
       eventData: data
+    });
+  }
+
+  private subcounter(subscriptionData: any) {
+    console.log(subscriptionData);
+    this.stream.emit('push', 'message', {
+      eventType: 'subscriptions',
+      eventData: subscriptionData
     });
   }
 }
