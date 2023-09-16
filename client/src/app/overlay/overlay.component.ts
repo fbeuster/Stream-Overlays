@@ -42,14 +42,18 @@ export class OverlayComponent implements OnInit {
           this.alertbox = data.eventData;
 
           if (this.alertbox.type !== 'explosion' &&
-              this.alertbox.type !== 'raveparty') {
+              this.alertbox.type !== 'raveparty' &&
+              this.alertbox.type !== 'oil_weak' &&
+              this.alertbox.type !== 'crush_enemies') {
             this.visible = true;
           }
 
           this.playAlertSound();
 
           if (this.alertbox.type !== 'explosion' &&
-              this.alertbox.type !== 'raveparty') {
+              this.alertbox.type !== 'raveparty' &&
+              this.alertbox.type !== 'oil_weak' &&
+              this.alertbox.type !== 'crush_enemies') {
             setTimeout(() => {
               this.visible = false;
             }, environment.times.alerts.display);
@@ -76,6 +80,10 @@ export class OverlayComponent implements OnInit {
         audio.src = '../assets/sfx/explosion.wav';
       } else if (this.alertbox.type === 'raveparty') {
         audio.src = '../assets/sfx/rave.wav';
+      } else if (this.alertbox.type === 'crush_enemies') {
+        audio.src = '../assets/sfx/crush_enemies.wav';
+      } else if (this.alertbox.type === 'oil_weak') {
+        audio.src = '../assets/sfx/oil_weak.wav';
       }
 
       audio.load();
