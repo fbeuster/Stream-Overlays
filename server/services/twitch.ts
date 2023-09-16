@@ -328,7 +328,45 @@ export class Twitch {
           limit: number
          }>(url, data, config)
         .then(res => {
-          console.log('Listening for subscriptions...');
+          console.log('Listening for gift subscriptions...');
+          resolve('');
+        })
+        .catch(error => {
+          console.log(error);
+          reject('');
+        });
+    });
+  }
+
+  createEventSubSubscriptionSubscriptionMessage() {
+    return new Promise((resolve, reject) => {
+      console.log('Create EventSub subscription for continued subscriptions...')
+
+      var url = this.EVENT_SUB_API;
+      var data = {
+        'type': 'channel.subscription.message',
+        'version': '1',
+        'condition' : {
+          'broadcaster_user_id': this.user.id
+        },
+        'transport' : {
+          'method' : 'webhook',
+          'callback': this.callbackUri + '/notification',
+          'secret' : this.webhookSecret
+        }
+      }
+      var config = {
+        headers: this.createRequestHeader()
+      }
+
+      axios
+        .post<{
+          data: EventSubSubscription[],
+          total: number,
+          limit: number
+         }>(url, data, config)
+        .then(res => {
+          console.log('Listening for continued subscriptions...');
           resolve('');
         })
         .catch(error => {

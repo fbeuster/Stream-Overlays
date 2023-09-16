@@ -98,6 +98,7 @@ export class Action {
     Object.keys(copy).forEach((key: string) => {
       if (typeof copy[key] === 'string') {
         copy[key] = copy[key].replace(/\{\{bits\}\}/, event.bits);
+        copy[key] = copy[key].replace(/\{\{months\}\}/, event.cumulative_months);
         copy[key] = copy[key].replace(/\{\{name\}\}/, event.is_anonymus === false ? 'Anonymous' : event.user_name);
         copy[key] = copy[key].replace(/\{\{raider_name\}\}/, event.from_broadcaster_name);
         copy[key] = copy[key].replace(/\{\{tier\}\}/, event.tier === '3000' ? '3' : (event.tier === '2000' ? '2' : '1'));

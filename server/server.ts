@@ -66,7 +66,7 @@ export default class Server {
     this.port = port;
 
     this.app.get('/api/subs', (req, res) => {
-      console.log('Client has connected to /api/subs');
+      console.log('Client has connected to /api/subs' );
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -88,6 +88,10 @@ export default class Server {
               eventType: 'subscriptions',
               eventData: subscriptionData
             });
+          })
+          .catch((error) => {
+            console.log('Some error occurred during the request.');
+            console.log(error);
           });
       }
 
@@ -96,7 +100,7 @@ export default class Server {
 
         setTimeout(() => {
           loopRefreshSubs();
-        }, 60000);
+        }, 2 * 60 * 1000);
       };
 
       loopRefreshSubs();
@@ -106,6 +110,7 @@ export default class Server {
       Promise.resolve(this.twitch.authorizeUser(req.query.code, req.query.scope))
         .then(() => this.twitch.createEventSubSubscriptionSubscribe())
         .then(() => this.twitch.createEventSubSubscriptionSubscriptionGift())
+        .then(() => this.twitch.createEventSubSubscriptionSubscriptionMessage())
         .then(() => this.twitch.createEventSubSubscriptionCheer())
         .then(() => this.twitch.createEventSubSubscriptionPointsRedemption())
         .then(() => console.log('Done for now.'));
@@ -189,16 +194,15 @@ export default class Server {
                   eventData: subscriptionData
                 });
               });
-
-          } else {
           }
+
           res.send('Ok')
         }
       }
     });
 
     this.app.get('/*', (req,res) => {
-      res.sendFile('index.html', { root: process.cwd() + '/../client/dist/client'});
+      res.sendFile('index.html', { root: process.cwd() + '/../client/dist/client' });
     });
 
     this.app.listen(port, async() => {
@@ -214,16 +218,6 @@ export default class Server {
         });
 
       console.log('Listening for requests...');
-
-      // load list of emotes
-      //    - bttv channel, bttv global, twitch global
-      // store in hashmap { name -> id, ... }
-      //    - hardwire twitch prime
-      // upon message, check search words in hashmap
-      // send IDs to overlay
-      // overlay renders image
-
-      // followage
     });
   }
 }

@@ -1,7 +1,7 @@
 export interface EventSubSubscription {
   id: string;
   status: string;
-  typoe: string;
+  type: string;
   version: string;
   condition: {
     broadcaster_user_id: string;
