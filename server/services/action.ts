@@ -25,7 +25,7 @@ export class Action {
     if (type in this.events.debug_events) {
       this.events.debug_events[type].actions.forEach( (action) => {
         if (action.name == 'sound') {
-          this.overlay(this.annotateData(type, event, action.data));
+          this.overlay(this.annotateData(action.data.type, event, action.data));
 
         } else if (action.name == 'light') {
           if (action.data.name == 'random') {
