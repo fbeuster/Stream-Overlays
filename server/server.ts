@@ -14,7 +14,10 @@ import { Action } from './services/action';
 import { Debug } from './services/debug';
 import { Light } from './services/light';
 import { Twitch } from './services/twitch';
-import { TwitchChatbot } from './services/twitchChabot';
+import { TwitchChatbot } from './services/chatbot/twitchChabot';
+import { ServiceType } from './typings/services';
+import { Chatbot } from './services/chatbot/chatbot';
+import { VoidChatbot } from './services/chatbot/defaultChatbot';
 
 export default class Server {
   private app: express.Application;
@@ -22,13 +25,16 @@ export default class Server {
   private port: string;
   private stream: EventEmitter;
   private twitch: Twitch;
-  private chatbot: TwitchChatbot;
+  private chatbot: Chatbot;
   private light: Light;
   private action: Action;
   private events: Events;
+  private serviceType: ServiceType;
 
   constructor() {
     dotenv.config();
+
+    this.serviceType = process.env.SERVICE_TYPE as ServiceType ?? ServiceType.None;
 
     this.port = '';
 
@@ -52,11 +58,17 @@ export default class Server {
 
     this.stream = new EventEmitter();
 
-    this.chatbot = new TwitchChatbot(
-                        process.env.TWITCH_CHATBOT_LOGIN ?? '',
-                        process.env.TWITCH_CHATBOT_OAUTH ?? '',
-                        process.env.TWITCH_USERNAME ?? '',
-                        this.twitch);
+    switch (this.serviceType) {
+      case ServiceType.Twitch:
+        this.chatbot = new TwitchChatbot(
+          process.env.TWITCH_CHATBOT_LOGIN ?? '',
+          process.env.TWITCH_CHATBOT_OAUTH ?? '',
+          process.env.TWITCH_USERNAME ?? '',
+          this.twitch);
+        break;
+      default:
+        this.chatbot = new VoidChatbot();
+    }
 
     this.events = events;
     this.action = new Action(this.events, this.stream, this.light, this.chatbot, this.twitch);
@@ -206,16 +218,18 @@ export default class Server {
     });
 
     this.app.listen(port, async() => {
-      Promise.resolve(this.twitch.authorize())
-        .then(() => this.twitch.deleteAllEventSubSubscriptions())
-        .then(() => this.twitch.getUserByUsername(process.env.TWITCH_USERNAME ?? ''))
-        .then((user: User) => this.twitch.setUser(user))
-        .then(() => this.twitch.createEventSubSubscriptionFollow())
-        .then(() => this.twitch.createEventSubSubscriptionRaid())
-        .then(() => console.log('Done for now.'))
-        .catch((error) => {
-          console.log(error);
-        });
+      if (this.serviceType === ServiceType.Twitch) {
+        Promise.resolve(this.twitch.authorize())
+          .then(() => this.twitch.deleteAllEventSubSubscriptions())
+          .then(() => this.twitch.getUserByUsername(process.env.TWITCH_USERNAME ?? ''))
+          .then((user: User) => this.twitch.setUser(user))
+          .then(() => this.twitch.createEventSubSubscriptionFollow())
+          .then(() => this.twitch.createEventSubSubscriptionRaid())
+          .then(() => console.log('Done for now.'))
+          .catch((error) => {
+            console.log(error);
+          });
+      }
 
       console.log('Listening for requests...');
     });

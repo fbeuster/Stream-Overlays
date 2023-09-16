@@ -34,6 +34,8 @@ This tool is using the [Twitch EventSub mechanic](https://dev.twitch.tv/docs/eve
 On the server side, you'll need the following config file: ```/server/.env```
 ```
 NGROK_URI=your_callbacl_uri
+AUTHORIZE_CALLBACK_URI=your_authorize_callback_uri
+SERVICE_TYPE=none
 TWITCH_CLIENT_ID=your_twtich_api_client_id
 TWITCH_CLIENT_SECRET=your_twitch_api_client_secret
 TWITCH_USERNAME=your_twitch_user_to_observe
@@ -43,6 +45,8 @@ SERVER_PORT=your_app_port
 ```
 
 For the Twitch chat bot, this project relies on [tmi.js](https://github.com/tmijs/tmi.js). All you need to provide a bot login name in the ```.env```, along with an OAuth code, that you can get [here](https://twitchapps.com/tmi/).
+
+The field `SERVICE_TYPE` selects the streaming service, that is being used. Possible values are `twitch`, `youtube` and `none`.
 
 Next to the ```.env``` file, you need to provide a ```/server/commands.json``` file. Emote names in ```dances``` will be used for the ```!danceparty``` command, ```text_commands``` is a collection for static text replacements. You can follow this structure:
 ```json

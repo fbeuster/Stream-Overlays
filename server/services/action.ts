@@ -4,16 +4,16 @@ import { Events } from '../interfaces/events';
 
 import { Light } from '../services/light';
 import { Twitch } from '../services/twitch';
-import { TwitchChatbot } from '../services/twitchChabot';
+import { Chatbot } from './chatbot/chatbot';
 
 export class Action {
-  private chatbot: TwitchChatbot;
+  private chatbot: Chatbot;
   private events: Events;
   private light: Light;
   private stream: EventEmitter;
   private twitch: Twitch;
 
-  constructor(events: Events, stream: EventEmitter, light: Light, chatbot: TwitchChatbot, twitch: Twitch) {
+  constructor(events: Events, stream: EventEmitter, light: Light, chatbot: Chatbot, twitch: Twitch) {
     this.events = events;
     this.light = light;
     this.stream = stream;

@@ -1,13 +1,14 @@
 import tmi from 'tmi.js';
 
-import commands from '../commands.json';
+import commands from '../../commands.json';
 
-import { User } from '../interfaces/user';
-import { Stream } from '../interfaces/stream';
+import { User } from '../../interfaces/user';
+import { Stream } from '../../interfaces/stream';
 
-import { Twitch } from './twitch';
+import { Twitch } from '../twitch';
+import { Chatbot } from './chatbot';
 
-export class TwitchChatbot {
+export class TwitchChatbot implements Chatbot {
   private client: tmi.Client;
   private target_channel: string;
   private twitch: Twitch;
