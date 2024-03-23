@@ -120,6 +120,9 @@ export default class Server {
 
     this.app.get('/authorize', (req,res) => {
       Promise.resolve(this.twitch.authorizeUser(req.query.code, req.query.scope))
+        .then(() => this.twitch.getUserByToken())
+        .then((user: User) => this.twitch.setAuthenticatedUser(user))
+        .then(() => this.twitch.createEventSubSubscriptionFollow())
         .then(() => this.twitch.createEventSubSubscriptionSubscribe())
         .then(() => this.twitch.createEventSubSubscriptionSubscriptionGift())
         .then(() => this.twitch.createEventSubSubscriptionSubscriptionMessage())
@@ -140,7 +143,7 @@ export default class Server {
     });
 
     this.app.get('/events', (req, res) => {
-      console.log('Client has connected to /events');
+      console.log('Client has connected to /events' );
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -223,7 +226,6 @@ export default class Server {
           .then(() => this.twitch.deleteAllEventSubSubscriptions())
           .then(() => this.twitch.getUserByUsername(process.env.TWITCH_USERNAME ?? ''))
           .then((user: User) => this.twitch.setUser(user))
-          .then(() => this.twitch.createEventSubSubscriptionFollow())
           .then(() => this.twitch.createEventSubSubscriptionRaid())
           .then(() => console.log('Done for now.'))
           .catch((error) => {

@@ -12,6 +12,7 @@ export class Twitch {
   private HELIX_API = 'https://api.twitch.tv/helix';
   private EVENT_SUB_API = this.HELIX_API + '/eventsub/subscriptions';
 
+  private authenticatedUser: User;
   private authorizationData: AuthorizationData;
   private authorizationDataUser: AuthorizationData;
   private authorizeCallbackUri: string;
@@ -43,6 +44,20 @@ export class Twitch {
       scope: [],
       token_type: ''
     };
+
+    this.authenticatedUser = {
+      id: '',
+      login: '',
+      display_name: '',
+      type: '',
+      broadcaster_type: '',
+      description: '',
+      profile_image_url: '',
+      offline_image_url: '',
+      view_count: 0,
+      email: '',
+      created_at: ''
+    }
 
     this.user = {
       id: '',
@@ -150,14 +165,15 @@ export class Twitch {
 
   createEventSubSubscriptionFollow() {
     return new Promise((resolve, reject) => {
-      console.log('Create EventSub subscription for followers...')
+      console.log('Create EventSub subscription for followers...');
 
       var url = this.EVENT_SUB_API;
       var data = {
         'type': 'channel.follow',
-        'version': '1',
+        'version': '2',
         'condition' : {
-          'broadcaster_user_id': this.user.id
+          'broadcaster_user_id': this.user.id,
+          'moderator_user_id': this.authenticatedUser.id
         },
         'transport' : {
           'method' : 'webhook',
@@ -498,6 +514,34 @@ export class Twitch {
     });
   }
 
+  getUserByToken(): Promise<User> {
+    return new Promise((resolve, reject) => {
+      console.log('Get authenticated user...');
+
+      var url = this.HELIX_API + '/users';
+
+      axios
+        .get<{
+          data: User[]
+        }>(url, {
+          headers: this.createRequestHeaderAuthorized()
+        })
+        .then(res => {
+          if (res.data.data.length !== 1) {
+            console.log('User not found.');
+            reject(null);
+
+          } else {
+            resolve(res.data.data[0]);
+          }
+        })
+        .catch(error => {
+          console.error(error);
+          reject(null);
+        });
+    });
+  }
+
   getUserByUsername(username: string): Promise<User> {
     return new Promise((resolve, reject) => {
       console.log('Get user ' + username + '...');
@@ -532,6 +576,10 @@ export class Twitch {
 
   isAuthorized(): boolean {
     return this.authorizationDataUser.access_token !== '';
+  }
+
+  setAuthenticatedUser(user: User) {
+    this.authenticatedUser = user;
   }
 
   setUser(user: User) {
