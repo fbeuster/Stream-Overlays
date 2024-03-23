@@ -104,6 +104,7 @@ dist
 .tern-port
 
 # Workspace files
+*.code-workspace
 *.sublime-project
 *.sublime-workspace
 commands.json
